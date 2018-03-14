@@ -1,0 +1,26 @@
+#!/bin/bash
+
+indent() {
+  sed -u 's/^/       /'
+}
+
+readonly BUILD_DIR=${1:-}
+readonly CACHE_DIR=${2:-}
+
+readonly URL="https://raw.githubusercontent.com/petervanderdoes/gitflow-avh/develop/contrib/gitflow-installer.sh"
+
+echo "-----> Download gitflow-avh"
+
+result=$(curl "$URL" -L --silent --fail --retry 5 --retry-max-time 15 -o "$CACHE_DIR"/installer.sh --write-out "%{http_code}")
+
+if [ "$result" != "200" ]; then
+  (echo "Unable to download gitflow-avh: $result" | indent) && false
+fi
+
+echo "-----> Install gitflow-avh"
+
+result=$(PREFIX="$BUILD_DIR" bash "$CACHE_DIR"/installer.sh install stable | indent)
+
+if [ "${PIPESTATUS[*]}" -ne 0 ]; then
+  (echo "Unable to install gitflow-avh" | indent) && false
+fi
